@@ -1,21 +1,68 @@
 # Dynamic Obstacle Parking Environment (DOPE)
 
-This project extends the [E2E Parking CARLA](https://github.com/qintonguav/e2e-parking-carla) framework to evaluate end-to-end autonomous parking models in **dynamic scenarios** with moving NPC vehicles. The system tests how well parking models handle real-world challenges like vehicles blocking paths, driving out of parking spots, or approaching from the opposite direction.
+Dynamic Obstacle Parking Environment (DOPE) is a research framework for evaluating end-to-end autonomous parking systems in realistic **dynamic driving scenarios** using the CARLA simulator.
+
+DOPE is inspired by the ideas and experimental setup introduced in the
+[E2E Parking CARLA](https://github.com/qintonguav/e2e-parking-carla) project. However, this repository is an **independent reimplementation and substantial extension**, designed specifically for dynamic obstacle evaluation and reproducible autonomous parking research.
+
+This project is **not a copy or redistribution** of the original repository. Instead, the system has been re-engineered and extended with new components, evaluation workflows, and scenario generation logic to support dynamic interactions between the ego vehicle and moving non-player character (NPC) vehicles.
+
+The primary goal of DOPE is to study how autonomous parking models behave under challenging real-world conditions such as:
+- Vehicles blocking the parking path
+- Cars driving out of adjacent parking spots
+- Vehicles approaching from the opposite direction
+- Dynamic interactions during parking maneuvers
+- Multi-agent interference in constrained environments
+
+Compared to static parking benchmarks, DOPE provides a more realistic and adversarial testing environment for evaluating:
+- Robustness of parking policies
+- Collision avoidance behavior
+- Reactive decision making
+- Failure handling and recovery
+- Generalization to unseen dynamic scenarios
 
 ## Features
 
-- **Dynamic NPC Modes**: Four configurable NPC behavior modes to simulate realistic parking scenarios:
-  - `none`: Static parking lot (baseline)
-  - `drive_out`: NPC vehicle drives out of a parking spot during the parking maneuver
-  - `follow`: NPC vehicle follows the ego vehicle
-  - `block`: NPC vehicle blocks the path to the target parking spot
+### Dynamic NPC Modes
 
-- **Supported Parking Agents**: Three pluggable model backends:
-  - `e2e_parking_carla`: E2E-Parking architecture with multi-camera BEV perception and transformer-based feature fusion
-  - `caa_policy`: CAA policy model
-  - `dino_diffusion_parking`: DINOv2 + diffusion-based parking policy
+Four configurable NPC behavior modes are provided to simulate realistic parking scenarios:
 
-- **Evaluation Metrics**: Comprehensive evaluation including success rate, collision rate, position/orientation errors, and parking time
+- `none`  
+  Static parking lot baseline without dynamic interference
+
+- `drive_out`  
+  NPC vehicle drives out of a parking spot during the ego vehicle’s maneuver
+
+- `follow`  
+  NPC vehicle follows or trails the ego vehicle during navigation
+
+- `block`  
+  NPC vehicle obstructs the path to the target parking location
+
+### Supported Parking Agents
+
+DOPE supports multiple pluggable autonomous parking backends:
+
+- `e2e_parking_carla`  
+  End-to-end parking architecture with multi-camera BEV perception and transformer-based feature fusion
+
+- `caa_policy`  
+  CAA policy-based parking agent
+
+- `dino_diffusion_parking`  
+  DINOv2 + diffusion-based autonomous parking policy
+
+### Evaluation Metrics
+
+The framework provides comprehensive evaluation and benchmarking metrics, including:
+
+- Parking success rate
+- Collision rate
+- Final position error
+- Final orientation error
+- Parking completion time
+- Scenario-specific failure statistics
+- Dynamic obstacle interaction analysis
 
 ## Table of Contents  <!-- omit in toc -->
 
