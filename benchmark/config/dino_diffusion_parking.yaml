@@ -13,8 +13,8 @@ evaluation:
   eva_task_nums: 16
   eva_parking_nums: 6
 
-  model_path: "/home/dynamic-e2e-parking/weights/dino_diffusion_parking.ckpt"
-  model_config_path: "/home/dynamic-e2e-parking/models/dino_diffusion_parking/model_config.yaml"
+  model_path: "/home/dynamic-obstacle-parking-env/weights/dino_diffusion_parking.ckpt"
+  model_config_path: "/home/dynamic-obstacle-parking-env/models/dino_diffusion_parking/model_config.yaml"
   dinov2_repo_path: "/home/tools/facebookresearch_dinov2_main" # local clone path; leave empty/null to use torch.hub
 
   agent_type: "dino_diffusion_parking" # options: ["e2e_parking_carla", "caa_policy", "dino_diffusion_parking"]

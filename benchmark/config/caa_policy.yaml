@@ -13,10 +13,10 @@ evaluation:
   eva_task_nums: 16
   eva_parking_nums: 6
 
-  model_path: "/home/dynamic-e2e-parking/weights/caa_policy.ckpt"
-  model_config_path: "/home/dynamic-e2e-parking/models/caa_policy/model_config.yaml"
-  dynamic_model_path: "/home/dynamic-e2e-parking/weights/caa_policy_dynamics.ckpt"
-  dynamic_model_config_path: "/home/dynamic-e2e-parking/models/caa_policy/dynamic_model_config.yaml"
+  model_path: "/home/dynamic-obstacle-parking-env/weights/caa_policy.ckpt"
+  model_config_path: "/home/dynamic-obstacle-parking-env/models/caa_policy/model_config.yaml"
+  dynamic_model_path: "/home/dynamic-obstacle-parking-env/weights/caa_policy_dynamics.ckpt"
+  dynamic_model_config_path: "/home/dynamic-obstacle-parking-env/models/caa_policy/dynamic_model_config.yaml"
 
   agent_type: "caa_policy" # options: ["e2e_parking_carla", "caa_policy", "dino_diffusion_parking"]
  

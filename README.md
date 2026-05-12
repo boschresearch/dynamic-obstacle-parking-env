@@ -1,11 +1,4 @@
-<!-- 
-Copyright (c) Legal Entities in the BISL Group 
-SPDX-License-Identifier: LicenseRef-BISL-1.0
--->
-
-# Dynamic End-to-End Parking
-
-[![License: BISL 1.0][license-badge]][license-docs]
+# Dynamic Obstacle Parking Environment (DOPE)
 
 This project extends the [E2E Parking CARLA](https://github.com/qintonguav/e2e-parking-carla) framework to evaluate end-to-end autonomous parking models in **dynamic scenarios** with moving NPC vehicles. The system tests how well parking models handle real-world challenges like vehicles blocking paths, driving out of parking spots, or approaching from the opposite direction.
 
@@ -14,13 +7,13 @@ This project extends the [E2E Parking CARLA](https://github.com/qintonguav/e2e-p
 - **Dynamic NPC Modes**: Four configurable NPC behavior modes to simulate realistic parking scenarios:
   - `none`: Static parking lot (baseline)
   - `drive_out`: NPC vehicle drives out of a parking spot during the parking maneuver
-  - `opposite`: NPC vehicle approaches from the opposite direction
+  - `follow`: NPC vehicle follows the ego vehicle
   - `block`: NPC vehicle blocks the path to the target parking spot
 
-- **E2E Parking Model**: Based on the original E2E-Parking architecture with:
-  - Multi-camera BEV (Bird's Eye View) perception
-  - Transformer-based feature fusion
-  - Tokenized control prediction (throttle, brake, steer, reverse)
+- **Supported Parking Agents**: Three pluggable model backends:
+  - `e2e_parking_carla`: E2E-Parking architecture with multi-camera BEV perception and transformer-based feature fusion
+  - `caa_policy`: CAA policy model
+  - `dino_diffusion_parking`: DINOv2 + diffusion-based parking policy
 
 - **Evaluation Metrics**: Comprehensive evaluation including success rate, collision rate, position/orientation errors, and parking time
 
@@ -43,66 +36,64 @@ This project extends the [E2E Parking CARLA](https://github.com/qintonguav/e2e-p
 
 ### Clone the Repository
 ```bash
-git clone <repository-url>
-cd dynamic-e2e-parking
+git clone https://github.com/boschresearch/dynamic-obstacle-parking-env.git
+cd dynamic-obstacle-parking-env
 ```
 
 ### Install Dependencies
 ```bash
-conda env create -f environment_rng.yml
-conda activate avp-cc
+conda env create -f environment.yml
+conda activate dynamic-parking
 ```
 
-### Download Pre-trained Models
-Download the pre-trained E2E parking model checkpoint and place it in:
-- `ckpt/e2e_parking.ckpt` - Pre-trained model checkpoint
-
-### Install CARLA 0.9.16
-
-#### Option A: GPU Cluster
+Alternatively, run the provided setup script which also downloads and installs CARLA:
 ```bash
-cp setup_carla.sh /fs/scratch/to/your/path
-cd /fs/scratch/to/your/path
-bash setup_carla.sh
+bash setup.sh
 ```
 
-#### Option B: Local (Windows + WSL2)
-1. Download [CARLA 0.9.16](https://carla-releases.s3.us-east-005.backblazeb2.com/Windows/CARLA_0.9.16.zip)
-2. Extract to `C:\carla\CARLA_0.9.16`
-3. Install [DirectX End-User Runtimes](https://www.microsoft.com/en-us/download/details.aspx?id=8109)
+### Download Models
+Each parking agent must be downloaded separately and placed in the `models/` directory:
+- `models/e2e_parking_carla/` - E2E-Parking CARLA agent
+- `models/caa_policy/` - CAA policy agent
+- `models/dino_diffusion_parking/` - DINOv2 + diffusion agent
+
+Each model directory must contain at minimum a `agent/parking_agent.py` (with a `ParkingAgent` class) and a `sensor_specs.yaml`.
+
+### Download Pre-trained Weights
+Download the model checkpoints and place them in the `weights/` directory:
+- `weights/e2e_parking_carla.ckpt`
+- `weights/caa_policy.ckpt`
+- `weights/caa_policy_dynamics.ckpt`
+- `weights/dino_diffusion_parking.ckpt`
+
+### Install CARLA 0.9.11
+
+Download and install [CARLA 0.9.11](https://carla-releases.s3.us-east-005.backblazeb2.com/Linux/CARLA_0.9.11.tar.gz) for Linux, or use `setup.sh` which automates this step.
 
 ## Getting Started
 
 ### Launch Simulation
 
-#### Option A: GPU Cluster (LSF Scheduler)
+**Terminal 1 - Start CARLA Server:**
 ```bash
-bsub < run.bsub
+cd carla
+./CarlaUE4.sh -no-sound
 ```
 
-#### Option B: Local (Windows + WSL2)
-
-**Terminal 1 - Start CARLA Server (Windows PowerShell):**
-```powershell
-cd C:\carla\CARLA_0.9.16
-.\CarlaUE4 -no-sound
-```
-
-**Terminal 2 - Run Evaluation (WSL2):**
+**Terminal 2 - Run Evaluation:**
 ```bash
-conda activate avp-cc
-python main.py --config config/dynamic.yaml
+conda activate dynamic-parking
+python benchmark/run.py -c benchmark/config/e2e_parking_carla.yaml
 ```
 
 ### Command Line Arguments
 ```bash
-python main.py --help
+python benchmark/run.py --help
 ```
 
 Key arguments:
-- `--config`: Path to configuration file (default: `config/dynamic.yaml`)
-- `--npc_mode`: Override NPC mode (`none`, `drive_out`, `opposite`, `block`)
-- `--show_eva_imgs`: Enable visualization of camera feeds and BEV
+- `-c`, `--config`: Path to configuration file (default: `benchmark/config/config.yaml`)
+- `-v`, `--verbose`: Enable debug logging
 
 ## NPC Modes
 
@@ -110,101 +101,81 @@ Key arguments:
 |------|-------------|
 | `none` | Static parking lot with parked vehicles only |
 | `drive_out` | An NPC vehicle drives out of a nearby parking spot during the maneuver |
-| `opposite` | An NPC vehicle approaches from the opposite direction in the driving lane |
+| `follow` | An NPC vehicle follows the ego vehicle |
 | `block` | An NPC vehicle temporarily blocks the path to the target parking spot |
 
-Configure the NPC mode in `config/dynamic.yaml`:
+Configure the NPC mode in the config file:
 ```yaml
 evaluation:
-  npc_mode: "block"  # options: ["none", "drive_out", "opposite", "block"]
+  npc_mode: "block"  # options: ["none", "drive_out", "block", "follow"]
 ```
 
 ## Configuration
 
-Main configuration files:
-- `config/dynamic.yaml` - Evaluation settings and NPC mode
-- `config/e2e_training.yaml` - Model architecture configuration
-- `config/sensor_specs.yaml` - Camera sensor specifications
+Main configuration files (in `benchmark/config/`):
+- `e2e_parking_carla.yaml` - E2E-Parking agent settings
+- `caa_policy.yaml` - CAA policy agent settings
+- `dino_diffusion_parking.yaml` - DINOv2 + diffusion agent settings
+
+Key configuration options:
+```yaml
+evaluation:
+  agent_type: "e2e_parking_carla"  # options: ["e2e_parking_carla", "caa_policy", "dino_diffusion_parking"]
+  npc_mode: "none"                 # options: ["none", "drive_out", "block", "follow"]
+  model_path: "weights/e2e_parking_carla.ckpt"
+  show_eva_imgs: false
+  save_imgs: false
+```
 
 ## Project Structure
 
 ```
-dynamic-e2e-parking/
-├── agent/                  # Parking agent for inference
-├── config/                 # Configuration files
-├── data_generation/        # CARLA world, sensors, NPC management
-├── dataset/                # Dataset loading and preprocessing  
-├── e2e_model/              # E2E parking model (original architecture)
-├── model/                  # Extended model components
-├── tool/                   # Utilities (config, geometry, metrics)
-├── main.py                 # Main entry point
-└── ckpt/                   # Model checkpoints
+dynamic-obstacle-parking-env/
+├── benchmark/              # Benchmark runner and CARLA environment
+│   ├── config/             # Configuration files (YAML + config loader)
+│   ├── environment/        # CARLA world, sensors, NPC management, BEV rendering
+│   ├── plots/              # Evaluation result plotting scripts
+│   ├── resource/           # UI assets
+│   └── run.py              # Main entry point
+├── models/                 # Parking agent implementations
+├── weights/                # Model checkpoints
+├── environment.yml         # Conda environment specification
+└── setup.sh                # Setup script (installs dependencies + CARLA)
 ```
 
-## Contribution Guidelines
+## Open Source Software
 
-> Use this section to describe or link to documentation which explaining how users can make contributions to the contents of this repository. Consider adopting the [InnerSource way of solicitating and handing contributions][contributing-code].
+| Package | Version | License |
+|---------|---------|---------|
+| [CARLA](https://github.com/carla-simulator/carla) | 0.9.11 | MIT |
+| [Python](https://www.python.org/) | 3.7.16 | PSF-2.0 |
+| [PyTorch](https://github.com/pytorch/pytorch) | 1.13.1 | BSD-3-Clause |
+| [torchvision](https://github.com/pytorch/vision) | 0.14.1 | BSD-3-Clause |
+| [torchaudio](https://github.com/pytorch/audio) | 0.13.1 | BSD-3-Clause |
+| [pytorch-lightning](https://github.com/Lightning-AI/pytorch-lightning) | 1.5.0 | Apache-2.0 |
+| [torchmetrics](https://github.com/Lightning-AI/torchmetrics) | 0.11.4 | Apache-2.0 |
+| [timm](https://github.com/huggingface/pytorch-image-models) | 0.9.7 | Apache-2.0 |
+| [einops](https://github.com/arogozhnikov/einops) | 0.6.1 | MIT |
+| [efficientnet-pytorch](https://github.com/lukemelas/EfficientNet-PyTorch) | 0.7.1 | Apache-2.0 |
+| [numpy](https://github.com/numpy/numpy) | 1.21.5 | BSD-3-Clause |
+| [opencv-python](https://github.com/opencv/opencv-python) | 4.8.0.76 | Apache-2.0 |
+| [Pillow](https://github.com/python-pillow/Pillow) | 9.4.0 | HPND |
+| [matplotlib](https://github.com/matplotlib/matplotlib) | 3.2.2 | PSF/BSD-compatible |
+| [pandas](https://github.com/pandas-dev/pandas) | latest | BSD-3-Clause |
+| [pygame](https://github.com/pygame/pygame) | 2.5.0 | LGPL-2.1 |
+| [PyYAML](https://github.com/yaml/pyyaml) | 6.0.1 | MIT |
+| [pyquaternion](https://github.com/KieranWynn/pyquaternion) | 0.9.9 | MIT |
+| [loguru](https://github.com/Delgan/loguru) | 0.7.0 | MIT |
+| [tqdm](https://github.com/tqdm/tqdm) | 4.66.1 | MIT / MPL-2.0 |
+| [tensorboard](https://github.com/tensorflow/tensorboard) | 2.11.2 | Apache-2.0 |
+| [huggingface-hub](https://github.com/huggingface/huggingface_hub) | 0.16.4 | Apache-2.0 |
+| [safetensors](https://github.com/huggingface/safetensors) | 0.4.0 | Apache-2.0 |
+| [gymnasium](https://github.com/Farama-Foundation/Gymnasium) | latest | MIT |
 
-Please read [our contribution guidelines][contribution].
+## Contact
 
-## Feedback
+For any questions or issues, please contact [Min Hee Jo](mailto:MinHee.Jo@de.bosch.com).
 
-> Consider using this section to describe how you would like other developers
-> to get in contact with you or provide feedback.
+## License
 
-## About
-
-### Maintainers
-
-> List the maintainers of this repository here. Consider linking to their Bosch
-> Connect profile pages. Mention or link to their email as a minimum.
-
-### Contributors
-
-> Consider listing contributors in this section to give explicit credit. You
-> could also ask contributors to add themselves in this file on their own.
-
-### 3rd Party Licenses
-
-> Declare all 3rd party software that is distributed with this repository along
-> with their licenses. It is recommended to [use an SBoM][how-to-sbom]. If you
-> do, please retain the following statement and add the SBoM file
-> `sbom.spdx.json` or `sbom.cyclonedx.json` in the main directory:
-
-Dependencies to 3rd party software are declared in the [SBoM](sbom.spdx.json).
-
-> Alternatively, provide a list in the readme using a table like the following.
-
-> | URL | Version | License |
-> |----------|---------|-------------|
-> |[Cobra](https://github.com/spf13/cobra) | 1.9.2 | [Apache 2.0 License](vendor/cobra/license.txt) |
->
-> License texts of distributed dependencies should be stored in the `vendor`
-> subdirectory.
-
-### Used Encryption
-
-> If the code in this repository **does not** contain or use encryption (other than TLS), please retain the following statement:
-
-This repository does not contain or use encryption algorithms.
-
-> If the code in this repository **does** contain or use encryption (other than TLS), please add the following statement to this readme:
-
-The software in this repository uses non-custom, strong encryption (&lt;name of algorithm&gt;).
-See [legal/&lt;name-of-algorithm&gt;-encryption.md] for more details.
-
-> And provide the file `legal/<name-of-algorithm>-encryption.md` with details ([learn more][declaration-of-encrytion])
-
-### License
-
-[![License: BISL 1.0][license-badge]][license-docs]
-
-We ❤️ to share this repository as [InnerSource][innersource-docs].
-
-[license-docs]: https://docs.innersource.bosch.com/bisl-1/
-[license-badge]: https://img.shields.io/badge/License-BISL--1.0-informational
-[contribution]: CONTRIBUTING.md
-[declaration-of-encrytion]: https://docs.innersource.bosch.com/developers-corner/start-new-project/add-innersource-metadata/#documenting-used-encryption
-[contributing-code]: https://docs.innersource.bosch.com/developers-corner/run-project/ 
-[how-to-sbom]: https://docs.innersource.bosch.com/developers-corner/start-new-project/how-to-sbom/
-[innersource-docs]: https://docs.innersource.bosch.com/
+DOPE is open-sourced under the AGPL-3.0 license. See the LICENSE file for details.
