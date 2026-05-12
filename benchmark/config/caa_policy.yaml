@@ -1,0 +1,35 @@
+evaluation:
+  host: "127.0.0.1"
+  port: 2000
+
+  resolution: "860x480"
+  gamma: 0.0
+
+  random_seed: 0
+
+  bev_render_device: "cpu"
+
+  eva_epochs: 4
+  eva_task_nums: 16
+  eva_parking_nums: 6
+
+  model_path: "/home/dynamic-e2e-parking/weights/caa_policy.ckpt"
+  model_config_path: "/home/dynamic-e2e-parking/models/caa_policy/model_config.yaml"
+  dynamic_model_path: "/home/dynamic-e2e-parking/weights/caa_policy_dynamics.ckpt"
+  dynamic_model_config_path: "/home/dynamic-e2e-parking/models/caa_policy/dynamic_model_config.yaml"
+
+  agent_type: "caa_policy" # options: ["e2e_parking_carla", "caa_policy", "dino_diffusion_parking"]
+ 
+  # perfect parking of NPCs
+  perfect_parking: true
+
+  # moving NPCs
+  npc_mode: "none" # options: ["none", "drive_out", "block", "follow"]
+
+  shuffle_weather: false
+
+  # Ego spawning mode: true = deterministic evenly spaced, false = random
+  deterministic_ego_spawn: true
+
+  show_eva_imgs: false
+  save_imgs: false

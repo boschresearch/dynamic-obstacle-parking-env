@@ -1,0 +1,34 @@
+evaluation:
+  host: "127.0.0.1"
+  port: 2000
+
+  resolution: "860x480"
+  gamma: 0.0
+
+  random_seed: 0
+
+  bev_render_device: "cpu"
+
+  eva_epochs: 4
+  eva_task_nums: 16
+  eva_parking_nums: 6
+
+  model_path: "/home/dynamic-e2e-parking/weights/dino_diffusion_parking.ckpt"
+  model_config_path: "/home/dynamic-e2e-parking/models/dino_diffusion_parking/model_config.yaml"
+  dinov2_repo_path: "/home/tools/facebookresearch_dinov2_main" # local clone path; leave empty/null to use torch.hub
+
+  agent_type: "dino_diffusion_parking" # options: ["e2e_parking_carla", "caa_policy", "dino_diffusion_parking"]
+ 
+  # perfect parking of NPCs
+  perfect_parking: true
+
+  # moving NPCs
+  npc_mode: "none" # options: ["none", "drive_out", "block", "follow"]
+
+  shuffle_weather: false
+
+  # Ego spawning mode: true = deterministic evenly spaced, false = random
+  deterministic_ego_spawn: true
+
+  show_eva_imgs: false
+  save_imgs: false
