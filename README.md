@@ -1,5 +1,7 @@
 # Dynamic Obstacle Parking Environment (DOPE)
 
+> This work was presented at the [ICRA 2026 Workshop](https://tum-avs.github.io/ICRA2026_Workshop/).
+
 Dynamic Obstacle Parking Environment (DOPE) is a research framework for evaluating end-to-end autonomous parking systems in realistic **dynamic driving scenarios** using the CARLA simulator.
 
 DOPE is inspired by the ideas and experimental setup introduced in the
